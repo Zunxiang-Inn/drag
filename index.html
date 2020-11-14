@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>九宫格拖拽功能</title>
+		<style type="text/css">
+			#drag-wrapper {
+				position: relative;
+				margin-left: 50px;
+        width: 650px;
+        display: flex;
+			}
+			
+			#drag-wrapper > div {
+				width: 200px;
+				height: 200px;
+				line-height: 200px;
+				font-size: 50px;
+				position: absolute;
+				text-align: center;
+        background: #eee;
+        color: #000;
+        border: 1px solid #b2aaaa;
+        cursor: move;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="drag-wrapper"></div>
+
+		<script type="text/javascript">
+			// 创建九宫格元素
+			var dragWrapper = document.getElementById("drag-wrapper");
+      var dragItem = null;
+      var index = 1;
+			for(var i = 0; i < 3; i++) {
+				for(var j = 0; j < 3; j++) {
+					var oDiv = document.createElement("div");
+					dragWrapper.appendChild(oDiv);
+					oDiv.style.top = i * oDiv.offsetHeight + "px";
+					oDiv.style.left = j * oDiv.offsetWidth + "px";
+          oDiv.innerHTML = index++;
+				}
+			}
+      // 实现拖拽
+			var aItems = dragWrapper.children;
+			for(var i = 0; i < aItems.length; i++) {
+				aItems[i].onmousedown = function(e) {
+          if (dragItem) dragItem.style.color = "#000";
+					var _event = e || event;
+					// 获取鼠标相对于当前元素的坐标
+					var x = _event.offsetX;
+					var y = _event.offsetY;
+          // 记录当前拖拽的元素
+					dragItem = this;
+          // 克隆新节点
+					var cloneNode = dragItem.cloneNode();
+          // 替换节点
+					dragWrapper.replaceChild(cloneNode, dragItem);
+          // 替换掉的节点再次放入div中
+					dragWrapper.appendChild(dragItem);
+					cloneNode.style.border = "1px dashed #f00";
+          cloneNode.style.background = "transparent";
+					dragItem.style.zIndex = 1;
+          
+          // 拖动
+					document.onmousemove = function(e) {
+						var curEvent = e || event;
+            dragItem.style.color = '#100df4'
+            // 计算拖动元素的定位坐标
+						var _left = curEvent.clientX - x - dragWrapper.offsetLeft;
+						var _top = curEvent.clientY - y - dragWrapper.offsetTop;
+						dragItem.style.top = _top + "px";
+						dragItem.style.left = _left + "px";
+						return false;
+					}
+          // 松开
+					document.onmouseup = function() {
+            // 停止移动事件
+						document.onmousemove = null;
+						// 利用了勾股定理去判断最小距离
+            // 定义两点间最小长度
+            var minLine = 2000;
+            // 定义最小长度对应的index
+            var minIndex = 0;
+						for(var j = 0; j < aItems.length - 1; j++) {
+							var distX = dragItem.offsetLeft - aItems[j].offsetLeft;
+							var distY = dragItem.offsetTop - aItems[j].offsetTop;
+							var dist = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
+              if(dist < minLine) {
+                minLine = dist;
+                minIndex = j;
+              }
+						}
+						// 拖动元素交换位置
+						dragItem.style.left = aItems[minIndex].style.left;
+						dragItem.style.top = aItems[minIndex].style.top;
+						aItems[minIndex].style.left = cloneNode.style.left;
+						aItems[minIndex].style.top = cloneNode.style.top;
+            // 删除克隆元素
+						dragWrapper.removeChild(cloneNode);
+
+						document.onmouseup = null;
+
+					}
+					return false;
+				}
+			}
+		</script>
+	</body>
+
+</html>
